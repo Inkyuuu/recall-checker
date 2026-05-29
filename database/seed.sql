@@ -1,0 +1,40 @@
+INSERT INTO recalls (
+    source,
+    source_recall_id,
+    product_description,
+    product_description_clean,
+    brand_name,
+    company_name,
+    recall_reason,
+    classification,
+    status,
+    recall_initiation_date,
+    report_date,
+    termination_date,
+    distribution_pattern,
+    state,
+    country,
+    upc_codes,
+    lot_codes,
+    raw_data
+)
+VALUES (...)
+ON CONFLICT (source, source_recall_id)
+DO UPDATE SET
+    product_description = EXCLUDED.product_description,
+    product_description_clean = EXCLUDED.product_description_clean,
+    brand_name = EXCLUDED.brand_name,
+    company_name = EXCLUDED.company_name,
+    recall_reason = EXCLUDED.recall_reason,
+    classification = EXCLUDED.classification,
+    status = EXCLUDED.status,
+    recall_initiation_date = EXCLUDED.recall_initiation_date,
+    report_date = EXCLUDED.report_date,
+    termination_date = EXCLUDED.termination_date,
+    distribution_pattern = EXCLUDED.distribution_pattern,
+    state = EXCLUDED.state,
+    country = EXCLUDED.country,
+    upc_codes = EXCLUDED.upc_codes,
+    lot_codes = EXCLUDED.lot_codes,
+    raw_data = EXCLUDED.raw_data,
+    updated_at = NOW();

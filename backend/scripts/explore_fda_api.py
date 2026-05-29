@@ -1,4 +1,3 @@
-# scripts/explore_fda_api.py
 import httpx
 import json
 
