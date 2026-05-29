@@ -7,7 +7,7 @@ const fetchMock = jest.fn();
 beforeEach(() => {
   fetchMock.mockResolvedValue({
     ok: true,
-    json: async () => ({
+    text: async () => JSON.stringify({
       page: 1,
       page_size: 20,
       total: 0,

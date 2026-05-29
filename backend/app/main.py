@@ -1,6 +1,7 @@
 # app/main.py
 import os
 import sys
+import traceback
 from flask import Flask, jsonify, request
 
 
@@ -36,6 +37,14 @@ def create_app():
     @app.route("/", methods=["GET"])
     def health_check():
         return jsonify({"status": "ok"})
+
+    @app.errorhandler(Exception)
+    def handle_unexpected_error(error):
+        app.logger.error("Unhandled exception:\n%s", traceback.format_exc())
+        payload = {"error": "Internal server error"}
+        if os.environ.get("DEBUG_API_ERRORS") == "true":
+            payload["detail"] = str(error)
+        return jsonify(payload), 500
 
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     if project_root not in sys.path:

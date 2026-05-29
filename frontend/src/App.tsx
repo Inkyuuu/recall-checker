@@ -107,23 +107,25 @@ function App() {
     async function loadRecalls() {
       setIsLoading(true);
       setError('');
+      const requestUrl = `${apiBaseUrl}/api/recalls?${query}`;
 
       try {
-        const response = await fetch(`${apiBaseUrl}/api/recalls?${query}`, {
+        const response = await fetch(requestUrl, {
           signal: controller.signal,
         });
-        const payload = await response
-          .json()
-          .catch(() => ({ error: `Request failed with status ${response.status}` }));
+        const responseText = await response.text();
+        const payload = responseText
+          ? JSON.parse(responseText)
+          : {};
 
         if (!response.ok) {
-          throw new Error(payload.error || 'Unable to load recalls.');
+          throw new Error(payload.error || `Request failed with status ${response.status}: ${responseText}`);
         }
 
         setData(payload);
       } catch (caught) {
         if ((caught as Error).name !== 'AbortError') {
-          setError((caught as Error).message);
+          setError(`${(caught as Error).message} (${requestUrl})`);
           setData(null);
         }
       } finally {
