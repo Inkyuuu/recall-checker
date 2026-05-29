@@ -1,5 +1,5 @@
 import httpx
-from datetime import date, timedelta
+from datetime import date
 import os
 
 import psycopg
@@ -14,6 +14,13 @@ if not DATABASE_URL:
 
 BASE_URL = "https://api.fda.gov/food/enforcement.json"
 
+
+def parse_fda_date(value):
+    if not value:
+        return None
+    return date(int(value[:4]), int(value[4:6]), int(value[6:8]))
+
+
 def get_last_report_date(conn):
     with conn.cursor() as cur:
         cur.execute("""
@@ -22,6 +29,23 @@ def get_last_report_date(conn):
             WHERE source = 'FDA';
         """)
         return cur.fetchone()[0]
+
+
+def get_latest_available_report_date():
+    params = {
+        "limit": 1,
+        "sort": "report_date:desc",
+    }
+    response = httpx.get(BASE_URL, params=params)
+    response.raise_for_status()
+    records = response.json().get("results", [])
+    if not records:
+        raise RuntimeError("openFDA returned no enforcement records.")
+    latest_report_date = parse_fda_date(records[0].get("report_date"))
+    if not latest_report_date:
+        raise RuntimeError("openFDA latest enforcement record has no report_date.")
+    return latest_report_date
+
 
 def fetch_fda_updates(start_date, end_date):
     params = {
@@ -63,6 +87,7 @@ def fetch_fda_updates(start_date, end_date):
 
 def run_sync():
     today = date.today()
+    latest_available_report_date = get_latest_available_report_date()
 
     with psycopg.connect(DATABASE_URL) as conn:
         start_report_date = get_last_report_date(conn)
@@ -70,8 +95,17 @@ def run_sync():
     if start_report_date > today:
         raise RuntimeError("Last report_date is in the future. Check the database contents.")
 
-    print(f"Syncing FDA updates from {start_report_date} through {today}")
-    fetch_fda_updates(start_report_date, today)
+    end_report_date = min(today, latest_available_report_date)
+    if start_report_date >= end_report_date:
+        print(
+            "No FDA updates to sync. "
+            f"Database latest report_date is {start_report_date}; "
+            f"openFDA latest available report_date is {latest_available_report_date}."
+        )
+        return
+
+    print(f"Syncing FDA updates from {start_report_date} through {end_report_date}")
+    fetch_fda_updates(start_report_date, end_report_date)
 
 
 if __name__ == "__main__":
