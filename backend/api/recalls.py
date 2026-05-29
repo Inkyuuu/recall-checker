@@ -223,8 +223,11 @@ def build_filters(args):
     return filters, params, search_rank_params
 
 
-@recalls_bp.route("/recalls", methods=["GET"])
+@recalls_bp.route("/recalls", methods=["GET", "OPTIONS"])
 def list_recalls():
+    if request.method == "OPTIONS":
+        return "", 204
+
     page = normalize_int(request.args.get("page"), DEFAULT_PAGE)
     page_size = normalize_int(request.args.get("page_size"), DEFAULT_PAGE_SIZE, maximum=MAX_PAGE_SIZE)
 

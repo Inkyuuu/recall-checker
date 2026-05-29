@@ -1,7 +1,7 @@
 # app/main.py
 import os
 import sys
-from flask import Flask
+from flask import Flask, jsonify, request
 
 
 def create_app():
@@ -25,13 +25,17 @@ def create_app():
 
     @app.after_request
     def add_cors_headers(response):
-        origin = request_origin()
+        origin = request.headers.get("Origin")
         if origin in allowed_origins:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Vary"] = "Origin"
             response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
             response.headers["Access-Control-Allow-Headers"] = "Content-Type"
         return response
+
+    @app.route("/", methods=["GET"])
+    def health_check():
+        return jsonify({"status": "ok"})
 
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     if project_root not in sys.path:
@@ -42,12 +46,6 @@ def create_app():
     app.register_blueprint(recalls_bp)
 
     return app
-
-
-def request_origin():
-    from flask import request
-
-    return request.headers.get("Origin")
 
 
 app = create_app()
