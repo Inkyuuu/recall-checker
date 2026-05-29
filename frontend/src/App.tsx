@@ -46,6 +46,7 @@ const initialFilters: Filters = {
 };
 
 const pageSize = 20;
+const apiBaseUrl = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
 
 function formatValue(value: string | null) {
   return value && value.trim() ? value : 'Unknown';
@@ -107,7 +108,7 @@ function App() {
       setError('');
 
       try {
-        const response = await fetch(`/api/recalls?${query}`, {
+        const response = await fetch(`${apiBaseUrl}/api/recalls?${query}`, {
           signal: controller.signal,
         });
         const payload = await response.json();
