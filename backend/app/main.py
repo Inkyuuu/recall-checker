@@ -14,6 +14,24 @@ def create_app():
         )
 
     app.config["DATABASE_URL"] = database_url
+    allowed_origins = {
+        origin.strip()
+        for origin in os.environ.get(
+            "CORS_ALLOWED_ORIGINS",
+            "http://localhost:3000,http://127.0.0.1:3000,https://inkyuuu.github.io",
+        ).split(",")
+        if origin.strip()
+    }
+
+    @app.after_request
+    def add_cors_headers(response):
+        origin = request_origin()
+        if origin in allowed_origins:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Vary"] = "Origin"
+            response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        return response
 
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     if project_root not in sys.path:
@@ -24,6 +42,12 @@ def create_app():
     app.register_blueprint(recalls_bp)
 
     return app
+
+
+def request_origin():
+    from flask import request
+
+    return request.headers.get("Origin")
 
 
 app = create_app()
