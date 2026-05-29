@@ -33,7 +33,7 @@ test('renders recall search controls', async () => {
   expect(screen.getByLabelText(/sort/i)).toBeInTheDocument();
 
   await waitFor(() => {
-    expect(fetchMock).toHaveBeenCalledWith('/api/recalls?page=1&page_size=20&sort=relevance', {
+    expect(fetchMock).toHaveBeenCalledWith('/api/recalls?page=1&page_size=20&sort=report_date_desc', {
       signal: expect.any(AbortSignal),
     });
   });
@@ -51,7 +51,7 @@ test('filters recalls by selected classification', async () => {
 
   await waitFor(() => {
     expect(fetchMock).toHaveBeenLastCalledWith(
-      '/api/recalls?page=1&page_size=20&sort=relevance&classification=Class+II',
+      '/api/recalls?page=1&page_size=20&sort=report_date_desc&classification=Class+II',
       {
         signal: expect.any(AbortSignal),
       }
@@ -67,7 +67,7 @@ test('filters to ongoing recalls when checkbox is checked', async () => {
   fireEvent.click(screen.getByRole('button', { name: /search/i }));
 
   await waitFor(() => {
-    expect(fetchMock).toHaveBeenLastCalledWith('/api/recalls?page=1&page_size=20&sort=relevance&status=Ongoing', {
+    expect(fetchMock).toHaveBeenLastCalledWith('/api/recalls?page=1&page_size=20&sort=report_date_desc&status=Ongoing', {
       signal: expect.any(AbortSignal),
     });
   });

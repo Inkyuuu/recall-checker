@@ -42,7 +42,7 @@ const initialFilters: Filters = {
   state: '',
   start_date: '',
   end_date: '',
-  sort: 'relevance',
+  sort: 'report_date_desc',
 };
 
 const pageSize = 20;
@@ -68,10 +68,11 @@ function formatDate(value: string | null) {
 }
 
 function buildQuery(filters: Filters, page: number) {
+  const sort = filters.sort === 'relevance' && !filters.q.trim() ? 'report_date_desc' : filters.sort;
   const params = new URLSearchParams({
     page: String(page),
     page_size: String(pageSize),
-    sort: filters.sort,
+    sort,
   });
 
   Object.entries(filters).forEach(([key, value]) => {
@@ -111,7 +112,9 @@ function App() {
         const response = await fetch(`${apiBaseUrl}/api/recalls?${query}`, {
           signal: controller.signal,
         });
-        const payload = await response.json();
+        const payload = await response
+          .json()
+          .catch(() => ({ error: `Request failed with status ${response.status}` }));
 
         if (!response.ok) {
           throw new Error(payload.error || 'Unable to load recalls.');
